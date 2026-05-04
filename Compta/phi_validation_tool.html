@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHI Fiduciaire — Outil de Validation Comptable</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green:       #1b3f3f;
+    --green-dark:  #122b2b;
+    --green-mid:   #2a5a5a;
+    --red:         #ef3a24;
+    --white:       #FFFFFF;
+    --off-white:   #F7F5F2;
+    --dark:        #2C2C2C;
+    --earth:       #856c4e;
+    --earth-light: #f0ebe3;
+    --gray:        #E8E8E8;
+    --blue-soft:   #EAF0FE;
+    --blue:        #3B5BDB;
+    --orange:      #F39C12;
+    --orange-soft: #FEF9E7;
+    --red-soft:    #FEF3F2;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    background: var(--off-white);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ─────────────────────────────────────────────── */
+  header {
+    background: var(--green);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 3px;
+    line-height: 1;
+  }
+
+  .logo-sep {
+    width: 2px;
+    height: 28px;
+    background: var(--red);
+  }
+
+  .logo-sub {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  .header-title {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .header-badge {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.7);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 2px;
+  }
+
+  /* ── TABS ───────────────────────────────────────────────── */
+  .tabs-bar {
+    background: var(--green-dark);
+    border-bottom: 2px solid rgba(239,58,36,0.4);
+  }
+
+  .tabs-inner {
+    display: flex;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 14px 24px;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+    top: 2px;
+  }
+
+  .tab-btn:hover { color: rgba(255,255,255,0.8); }
+
+  .tab-btn.active {
+    color: var(--white);
+    border-bottom: 3px solid var(--red);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .tab-num {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background: var(--red);
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 18px;
+    margin-right: 8px;
+    color: white;
+  }
+
+  .tab-btn:not(.active) .tab-num {
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* ── MAIN LAYOUT ────────────────────────────────────────── */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+  }
+
+  .workflow-panel { display: none; }
+  .workflow-panel.active { display: block; }
+
+  /* ── WORKFLOW HEADER ────────────────────────────────────── */
+  .wf-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 36px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--gray);
+  }
+
+  .wf-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 600;
+    color: var(--earth-light);
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: -8px;
+  }
+
+  .wf-meta { flex: 1; }
+
+  .wf-eyebrow {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+
+  .wf-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--green);
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+
+  .wf-desc {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    max-width: 600px;
+  }
+
+  /* ── TWO COLUMNS ────────────────────────────────────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+
+  /* ── SECTION CARDS ──────────────────────────────────────── */
+  .section-card {
+    background: var(--white);
+    border: 1px solid var(--gray);
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  .card-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-header.katja { background: #f0f7f4; border-bottom: 2px solid var(--green); }
+  .card-header.claude { background: var(--blue-soft); border-bottom: 2px solid var(--blue); }
+  .card-header.warning { background: var(--red-soft); border-bottom: 2px solid var(--red); }
+  .card-header.decision { background: var(--orange-soft); border-bottom: 2px solid var(--orange); }
+
+  .card-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .card-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .card-label.katja { color: var(--green); }
+  .card-label.claude { color: var(--blue); }
+  .card-label.warning { color: var(--red); }
+  .card-label.decision { color: var(--orange); }
+
+  .card-body { padding: 20px; }
+
+  /* ── CHECKLIST ──────────────────────────────────────────── */
+  .checklist { list-style: none; }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray);
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 2px;
+    padding: 9px 8px;
+  }
+
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li:hover { background: var(--off-white); }
+
+  .checklist li.checked { opacity: 0.5; }
+  .checklist li.checked .check-text { text-decoration: line-through; }
+
+  .check-box {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--gray);
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .checklist li.checked .check-box {
+    background: var(--green);
+    border-color: var(--green);
+  }
+
+  .check-tick {
+    display: none;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .checklist li.checked .check-tick { display: block; }
+
+  .check-text {
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: var(--dark);
+  }
+
+  .check-sub {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+    font-style: italic;
+  }
+
+  /* ── PROMPT BOX ─────────────────────────────────────────── */
+  .prompt-wrap {
+    background: var(--white);
+    border: 1px solid var(--gray);
+    border-left: 4px solid var(--green);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  .prompt-header {
+    background: #f0f7f4;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--gray);
+  }
+
+  .prompt-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .copy-btn {
+    background: var(--green);
+    color: var(--white);
+    border: none;
+    padding: 7px 18px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .copy-btn:hover { background: var(--green-mid); }
+  .copy-btn.copied { background: var(--earth); }
+
+  .prompt-body {
+    padding: 20px;
+  }
+
+  .prompt-text {
+    font-family: 'Jost', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--dark);
+    white-space: pre-wrap;
+  }
+
+  .prompt-field {
+    display: inline-block;
+    background: var(--earth-light);
+    color: var(--earth);
+    padding: 1px 8px;
+    border-radius: 2px;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── ATTENTION BOX ──────────────────────────────────────── */
+  .attention-box {
+    background: var(--red-soft);
+    border: 1px solid rgba(239,58,36,0.2);
+    border-left: 4px solid var(--red);
+    border-radius: 2px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+
+  .attention-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .attention-box ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .attention-box ul li {
+    font-size: 13px;
+    color: var(--dark);
+    padding: 4px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .attention-box ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--red);
+    font-size: 11px;
+  }
+
+  /* ── INFO BOX ───────────────────────────────────────────── */
+  .info-box {
+    background: #f0f7f4;
+    border: 1px solid rgba(27,63,63,0.15);
+    border-left: 4px solid var(--green);
+    border-radius: 2px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+
+  .info-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .info-box ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .info-box ul li {
+    font-size: 13px;
+    color: var(--dark);
+    padding: 4px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .info-box ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-size: 11px;
+  }
+
+  /* ── PROGRESS ───────────────────────────────────────────── */
+  .progress-bar-wrap {
+    background: var(--white);
+    border: 1px solid var(--gray);
+    border-radius: 2px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #999;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 4px;
+    background: var(--gray);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-pct {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--green);
+    flex-shrink: 0;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--gray);
+    color: #999;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── TVA TABLE ──────────────────────────────────────────── */
+  .tva-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .tva-table th {
+    background: var(--green);
+    color: var(--white);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: 1px;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  .tva-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--gray);
+  }
+
+  .tva-table tr:nth-child(even) td { background: var(--off-white); }
+
+  .tva-rate {
+    font-weight: 500;
+    color: var(--green);
+    font-size: 15px;
+  }
+
+  /* ── FULL WIDTH CARD ─────────────────────────────────────── */
+  .full-card {
+    background: var(--white);
+    border: 1px solid var(--gray);
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    margin-bottom: 28px;
+  }
+
+  /* ── TRACKING PANEL ─────────────────────────────────────── */
+  .track-form {
+    background: var(--white);
+    border: 1px solid var(--gray);
+    border-radius: 2px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    margin-bottom: 28px;
+  }
+
+  .track-form h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--gray);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  .form-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #888;
+    font-weight: 500;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    color: var(--dark);
+    background: var(--off-white);
+    border: 1px solid var(--gray);
+    border-radius: 2px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border 0.15s;
+    width: 100%;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--green);
+    background: var(--white);
+  }
+
+  .form-textarea { resize: vertical; min-height: 70px; }
+
+  .time-inputs { display: flex; gap: 8px; align-items: center; }
+  .time-inputs span { font-size: 12px; color: #999; }
+  .time-inputs input { width: 80px; }
+
+  .submit-btn {
+    background: var(--green);
+    color: var(--white);
+    border: none;
+    padding: 11px 28px;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: background 0.2s;
+  }
+
+  .submit-btn:hover { background: var(--green-mid); }
+
+  /* ── LOG TABLE ───────────────────────────────────────────── */
+  .log-section { margin-top: 36px; }
+
+  .log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .log-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  .log-actions { display: flex; gap: 8px; }
+
+  .btn-secondary {
+    background: none;
+    border: 1px solid var(--gray);
+    color: #666;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover { border-color: var(--green); color: var(--green); }
+  .btn-export { border-color: var(--earth); color: var(--earth); }
+  .btn-export:hover { background: var(--earth-light); border-color: var(--earth); color: var(--earth); }
+
+  .log-table-wrap {
+    background: var(--white);
+    border: 1px solid var(--gray);
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  .log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+
+  .log-table th {
+    background: var(--green);
+    color: var(--white);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 400;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .log-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--gray);
+    vertical-align: top;
+  }
+
+  .log-table tr:last-child td { border-bottom: none; }
+  .log-table tr:hover td { background: var(--off-white); }
+
+  .log-empty {
+    text-align: center;
+    padding: 40px;
+    color: #bbb;
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  .badge-wf {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .badge-1 { background: #e8f4f0; color: var(--green); }
+  .badge-2 { background: var(--blue-soft); color: var(--blue); }
+  .badge-3 { background: var(--orange-soft); color: var(--orange); }
+  .badge-4 { background: var(--earth-light); color: var(--earth); }
+
+  .gain-pos { color: #27ae60; font-weight: 500; }
+  .gain-neg { color: var(--red); font-weight: 500; }
+
+  .delete-row {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    transition: color 0.15s;
+  }
+  .delete-row:hover { color: var(--red); }
+
+  /* ── STATS STRIP ─────────────────────────────────────────── */
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--gray);
+    border-radius: 2px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  .stat-sub { font-size: 11px; color: #bbb; margin-top: 4px; }
+
+  @media (max-width: 768px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-strip { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── FOOTER ─────────────────────────────────────────────── */
+  .footer {
+    background: var(--green);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 20px 40px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 60px;
+  }
+
+  .footer span { color: var(--red); }
+
+  /* ── RESPONSIVE ─────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .header-inner { padding: 14px 20px; }
+    .header-title { display: none; }
+    .tabs-inner { padding: 0 20px; }
+    .main { padding: 24px 20px 60px; }
+    .two-col { grid-template-columns: 1fr; }
+    .wf-number { font-size: 48px; }
+    .wf-title { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo-area">
+      <div>
+        <div class="logo-mark">PHI</div>
+        <div class="logo-sub">Fiduciaire</div>
+      </div>
+      <div class="logo-sep"></div>
+      <div style="font-family:'Jost',sans-serif;font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:2px;text-transform:uppercase;">Validation Comptable</div>
+    </div>
+    <div class="header-title">Outil interne — Katja Paillé</div>
+    <div class="header-badge">Usage Interne</div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <div class="tabs-inner">
+    <button class="tab-btn active" onclick="switchTab(0)">
+      <span class="tab-num">1</span>Réconciliation bancaire
+    </button>
+    <button class="tab-btn" onclick="switchTab(1)">
+      <span class="tab-num">2</span>Contrôle TVA
+    </button>
+    <button class="tab-btn" onclick="switchTab(2)">
+      <span class="tab-num">3</span>Clôture mensuelle
+    </button>
+    <button class="tab-btn" onclick="switchTab(3)">
+      <span class="tab-num">4</span>Bilan / P&L
+    </button>
+    <button class="tab-btn" onclick="switchTab(4)" style="border-left:1px solid rgba(255,255,255,0.1);margin-left:8px;">
+      <span class="tab-num" style="background:var(--earth);">◎</span>Suivi phase test
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ══════════════════════════════════════════════════════════
+       WORKFLOW 1 — RÉCONCILIATION BANCAIRE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="workflow-panel active" id="panel-0">
+
+    <div class="wf-header">
+      <div class="wf-number">01</div>
+      <div class="wf-meta">
+        <div class="wf-eyebrow">Workflow de validation</div>
+        <div class="wf-title">Réconciliation bancaire</div>
+        <div class="wf-desc">Rapprochement grand livre (1020/1021) vs relevé bancaire. Détection des écarts, doublons, et écritures en sens inverse. Séparation systématique des écarts de change et des écritures manquantes.</div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Avancement</div>
+      <div class="progress-track"><div class="progress-fill" id="prog-0" style="width:0%"></div></div>
+      <div class="progress-pct" id="pct-0">0%</div>
+      <button class="reset-btn" onclick="resetPanel(0)">Réinitialiser</button>
+    </div>
+
+    <div class="two-col">
+
+      <div class="section-card">
+        <div class="card-header katja">
+          <span class="card-icon">👤</span>
+          <span class="card-label katja">Étapes Katja — Préparation</span>
+        </div>
+        <div class="card-body">
+          <ul class="checklist" data-panel="0">
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Export WinBIZ — Grand livre compte 1020 (CHF)</div>
+                <div class="check-sub">Période complète, solde d'ouverture inclus</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Export WinBIZ — Grand livre compte 1021 (EUR) si applicable</div>
+                <div class="check-sub">Même période, même conditions</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Relevé bancaire PostFinance (ou autre banque)</div>
+                <div class="check-sub">Même période exacte que le grand livre</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Vérification export : dates correctes, solde d'ouverture, complétude</div>
+                <div class="check-sub">⚠ Claude ne peut pas détecter un export incomplet</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Anonymisation : remplacer nom client → numéro dossier WinBIZ</div>
+                <div class="check-sub">Aucun nom propre, aucun IBAN complet</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="card-header claude">
+          <span class="card-icon">🤖</span>
+          <span class="card-label claude">Ce que Claude va analyser</span>
+        </div>
+        <div class="card-body">
+          <ul class="checklist" data-panel="0">
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Lignes présentes dans le relevé, absentes du grand livre</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Lignes présentes dans le grand livre, absentes du relevé</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Doublons — même montant, même date</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Écritures en sens inverse suspect</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Séparation : écarts de change (4900/6900) vs écritures manquantes</div>
+                <div class="check-sub">Ne pas traiter les deux de la même façon</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="prompt-wrap">
+      <div class="prompt-header">
+        <span class="prompt-label">Prompt type — à coller dans Claude</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'prompt-1')">
+          <span>⎘</span> Copier
+        </button>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-text" id="prompt-1">Voici le grand livre compte 1020 et le relevé bancaire pour le dossier <span class="prompt-field">[NUMÉRO DOSSIER]</span>, période <span class="prompt-field">[MOIS/ANNÉE]</span>.
+
+Identifie :
+1. Les lignes présentes dans le relevé bancaire mais absentes du grand livre
+2. Les lignes présentes dans le grand livre mais absentes du relevé
+3. Les doublons éventuels (même montant, même date)
+4. Les écritures en sens inverse suspect
+
+Si le dossier comporte un compte en devises (1021 EUR), sépare clairement les écarts de change (comptes 4900/6900) des écritures manquantes — ce ne sont pas les mêmes corrections.
+
+Liste les points à corriger par ordre de priorité.</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="attention-box">
+        <div class="attention-title">⚠ Points d'attention critiques</div>
+        <ul>
+          <li>Un export incomplet produit une analyse fausse sans avertissement</li>
+          <li>Toujours inclure le solde d'ouverture dans l'export WinBIZ</li>
+          <li>Ne jamais coller d'IBAN complet dans Claude</li>
+          <li>Écarts de change ≠ écritures manquantes — traitement différent</li>
+        </ul>
+      </div>
+      <div class="section-card">
+        <div class="card-header decision">
+          <span class="card-icon">✅</span>
+          <span class="card-label decision">Validation finale — Katja</span>
+        </div>
+        <div class="card-body">
+          <ul class="checklist" data-panel="0">
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Vérifier chaque écart avec la réalité du dossier</div></div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Corriger dans WinBIZ</div></div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Documenter les ajustements effectués</div></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel-0 -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       WORKFLOW 2 — CONTRÔLE TVA
+  ══════════════════════════════════════════════════════════ -->
+  <div class="workflow-panel" id="panel-1">
+
+    <div class="wf-header">
+      <div class="wf-number">02</div>
+      <div class="wf-meta">
+        <div class="wf-eyebrow">Workflow de validation</div>
+        <div class="wf-title">Contrôle TVA trimestriel</div>
+        <div class="wf-desc">Vérification cohérence entre TVA déclarée et TVA comptabilisée. Détection des taux incorrects et liste systématique de toutes les lignes à 0% ou exonérées pour validation manuelle.</div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Avancement</div>
+      <div class="progress-track"><div class="progress-fill" id="prog-1" style="width:0%"></div></div>
+      <div class="progress-pct" id="pct-1">0%</div>
+      <button class="reset-btn" onclick="resetPanel(1)">Réinitialiser</button>
+    </div>
+
+    <div class="full-card" style="margin-bottom:28px;">
+      <div class="card-header" style="background:#f0f7f4;border-bottom:2px solid var(--green);">
+        <span class="card-icon">📋</span>
+        <span class="card-label katja">Taux TVA en vigueur — Suisse 2025</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="tva-table">
+          <tr>
+            <th>Type</th>
+            <th>Taux</th>
+            <th>Application</th>
+          </tr>
+          <tr>
+            <td>Taux normal</td>
+            <td><span class="tva-rate">8.1%</span></td>
+            <td>Prestations standard — majorité des cas</td>
+          </tr>
+          <tr>
+            <td>Taux réduit</td>
+            <td><span class="tva-rate">2.6%</span></td>
+            <td>Denrées alimentaires, médicaments, journaux</td>
+          </tr>
+          <tr>
+            <td>Taux hébergement</td>
+            <td><span class="tva-rate">3.8%</span></td>
+            <td>Prestations d'hébergement</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col">
+
+      <div class="section-card">
+        <div class="card-header katja">
+          <span class="card-icon">👤</span>
+          <span class="card-label katja">Étapes Katja — Préparation</span>
+        </div>
+        <div class="card-body">
+          <ul class="checklist" data-panel="1">
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Export WinBIZ — Décompte TVA trimestriel</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Export grand livre comptes TVA : 1170, 1171, 2200, 2201</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Vérification : période complète, tous les mouvements présents</div>
+                <div class="check-sub">⚠ Export incomplet = analyse incomplète sans avertissement</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Anonymisation : numéro dossier WinBIZ uniquement</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="card-header claude">
+          <span class="card-icon">🤖</span>
+          <span class="card-label claude">Ce que Claude va analyser</span>
+        </div>
+        <div class="card-body">
+          <ul class="checklist" data-panel="1">
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">TVA déclarée = TVA comptabilisée</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Taux incorrects (hors 8.1% / 2.6% / 3.8% sans justification)</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Liste complète des lignes à taux 0% ou exonérées</div>
+                <div class="check-sub">À valider manuellement par Katja une par une</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="prompt-wrap">
+      <div class="prompt-header">
+        <span class="prompt-label">Prompt type — à coller dans Claude</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'prompt-2')">
+          <span>⎘</span> Copier
+        </button>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-text" id="prompt-2">Voici le décompte TVA et le grand livre TVA (comptes 1170, 1171, 2200, 2201) pour le dossier <span class="prompt-field">[NUMÉRO DOSSIER]</span>, trimestre <span class="prompt-field">[T1/T2/T3/T4 ANNÉE]</span>.
+
+Vérifie :
+1. La cohérence entre la TVA déclarée et la TVA comptabilisée
+2. Les taux incorrects — taux attendus : 8.1% normal / 2.6% réduit / 3.8% hébergement
+
+Liste séparément et exhaustivement toutes les lignes codées à taux 0% ou exonérées pour validation manuelle.</div>
+      </div>
+    </div>
+
+    <div class="attention-box">
+      <div class="attention-title">⚠ L'erreur la plus fréquente en TVA</div>
+      <ul>
+        <li>Le calcul WinBIZ est correct — l'erreur vient du code TVA appliqué à la saisie</li>
+        <li>Une charge saisie à 0% au lieu de 8.1% ne génère aucune alerte automatique dans WinBIZ</li>
+        <li>Valider manuellement chaque ligne listée dans la catégorie 0% / exonéré — sans exception</li>
+      </ul>
+    </div>
+
+    <div class="section-card">
+      <div class="card-header decision">
+        <span class="card-icon">✅</span>
+        <span class="card-label decision">Validation finale — Katja</span>
+      </div>
+      <div class="card-body">
+        <ul class="checklist" data-panel="1">
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div><div class="check-text">Valider manuellement chaque ligne 0% / exonérée</div></div>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div><div class="check-text">Corriger les taux incorrects dans WinBIZ</div></div>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div><div class="check-text">Valider le décompte final et envoyer à l'AFC</div></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- /panel-1 -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       WORKFLOW 3 — CLÔTURE MENSUELLE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="workflow-panel" id="panel-2">
+
+    <div class="wf-header">
+      <div class="wf-number">03</div>
+      <div class="wf-meta">
+        <div class="wf-eyebrow">Workflow de validation</div>
+        <div class="wf-title">Validation clôture mensuelle</div>
+        <div class="wf-desc">Checklist officielle Phi Fiduciaire. Contrôle interne mensuel pour maintenir les dossiers propres en continu. Objectif : éviter que la clôture annuelle soit un chantier. S'applique à tous les dossiers.</div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Avancement</div>
+      <div class="progress-track"><div class="progress-fill" id="prog-2" style="width:0%"></div></div>
+      <div class="progress-pct" id="pct-2">0%</div>
+      <button class="reset-btn" onclick="resetPanel(2)">Réinitialiser</button>
+    </div>
+
+    <div class="two-col">
+
+      <div class="section-card">
+        <div class="card-header katja">
+          <span class="card-icon">👤</span>
+          <span class="card-label katja">Étapes Katja — Préparation</span>
+        </div>
+        <div class="card-body">
+          <ul class="checklist" data-panel="2">
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Export WinBIZ — Bilan de la période</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Export WinBIZ — Compte de résultat de la période</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Export WinBIZ — Grand livre complet de la période</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Vérification export : période correcte, export complet</div>
+                <div class="check-sub">⚠ Pas de filtre oublié dans WinBIZ</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Anonymisation : numéro dossier WinBIZ uniquement</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="card-header claude">
+          <span class="card-icon">🤖</span>
+          <span class="card-label claude">Checklist Phi — Claude va vérifier</span>
+        </div>
+        <div class="card-body">
+          <ul class="checklist" data-panel="2">
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Bilan équilibré — actif = passif</div></div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Charges récurrentes présentes : loyer, salaires, assurances</div></div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Comptes transitoires apurés</div></div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Pas d'écritures en sens inverse suspect</div></div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">TVA cohérente si fin de trimestre</div></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="attention-box" style="margin-bottom:20px;">
+      <div class="attention-title">⚠ Point critique — Amortissements</div>
+      <ul>
+        <li>Les amortissements sont saisis manuellement dans WinBIZ</li>
+        <li>C'est le point le plus souvent oublié en fin de mois chargé</li>
+        <li>Confirmation manuelle obligatoire — ne pas supposer que c'est fait</li>
+      </ul>
+    </div>
+
+    <div class="prompt-wrap">
+      <div class="prompt-header">
+        <span class="prompt-label">Prompt type — à coller dans Claude</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'prompt-3')">
+          <span>⎘</span> Copier
+        </button>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-text" id="prompt-3">Voici le bilan, le compte de résultat et le grand livre pour le dossier <span class="prompt-field">[NUMÉRO DOSSIER]</span>, mois de <span class="prompt-field">[MOIS/ANNÉE]</span>.
+
+Effectue une vérification de clôture mensuelle :
+1. Le bilan est-il équilibré (actif = passif) ?
+2. Les charges récurrentes sont-elles présentes (loyer, salaires, assurances) ?
+3. Y a-t-il des comptes transitoires non apurés ?
+4. Y a-t-il des écritures en sens inverse suspect ?
+5. Si fin de trimestre : la TVA est-elle cohérente ?
+
+Note : les amortissements sont saisis manuellement — confirme si tu les vois ou non dans les écritures.
+
+Signale tout point nécessitant une correction ou une vérification manuelle.</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="card-header decision">
+        <span class="card-icon">✅</span>
+        <span class="card-label decision">Validation finale — Katja</span>
+      </div>
+      <div class="card-body">
+        <ul class="checklist" data-panel="2">
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div><div class="check-text">Confirmer manuellement que les amortissements ont été passés</div></div>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div><div class="check-text">Traiter chaque point signalé par Claude</div></div>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div><div class="check-text">Passer au dossier suivant uniquement si checklist complète</div></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- /panel-2 -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       WORKFLOW 4 — BILAN / P&L
+  ══════════════════════════════════════════════════════════ -->
+  <div class="workflow-panel" id="panel-3">
+
+    <div class="wf-header">
+      <div class="wf-number">04</div>
+      <div class="wf-meta">
+        <div class="wf-eyebrow">Workflow de validation</div>
+        <div class="wf-title">Commentaire Bilan & P&L</div>
+        <div class="wf-desc">Détection des variations significatives et rédaction du commentaire client. S'applique aux situations intermédiaires et à la clôture annuelle. Seuils basés sur le chiffre d'affaires pour s'adapter automatiquement à la taille du dossier.</div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Avancement</div>
+      <div class="progress-track"><div class="progress-fill" id="prog-3" style="width:0%"></div></div>
+      <div class="progress-pct" id="pct-3">0%</div>
+      <button class="reset-btn" onclick="resetPanel(3)">Réinitialiser</button>
+    </div>
+
+    <div class="info-box">
+      <div class="info-title">Seuils d'alerte — basés sur le CA</div>
+      <ul>
+        <li><strong>Variation &gt; 10% du CA</strong> — significative, à commenter obligatoirement</li>
+        <li><strong>Variation &gt; 5% du CA</strong> — notable, à mentionner si non évidente</li>
+        <li>Ces seuils s'adaptent automatiquement à la taille du dossier</li>
+      </ul>
+    </div>
+
+    <div class="full-card" style="margin-bottom:28px;">
+      <div class="card-header" style="background:#f0f7f4;border-bottom:2px solid var(--green);">
+        <span class="card-label katja">Deux niveaux de commentaire</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table class="tva-table">
+          <tr>
+            <th>Type</th>
+            <th>Ton</th>
+            <th>Contenu</th>
+          </tr>
+          <tr>
+            <td><strong>Situation intermédiaire</strong></td>
+            <td>Sobre, factuel</td>
+            <td>Variations importantes sans conclusions définitives — "voici où on en est"</td>
+          </tr>
+          <tr>
+            <td><strong>Clôture annuelle</strong></td>
+            <td>Expert, structuré</td>
+            <td>Analyse complète des tendances, base pour la discussion fiscale</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col">
+
+      <div class="section-card">
+        <div class="card-header katja">
+          <span class="card-icon">👤</span>
+          <span class="card-label katja">Étapes Katja — Préparation</span>
+        </div>
+        <div class="card-body">
+          <ul class="checklist" data-panel="3">
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Export WinBIZ — Bilan période N vs N-1</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Export WinBIZ — P&L période N vs N-1</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Préparer le contexte : secteur d'activité générique</div>
+                <div class="check-sub">Ex. : "services", "commerce", "immobilier"</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Définir le type : situation intermédiaire ou clôture annuelle</div>
+              </div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div>
+                <div class="check-text">Anonymisation : numéro dossier, aucun chiffre identifiant</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="card-header claude">
+          <span class="card-icon">🤖</span>
+          <span class="card-label claude">Ce que Claude va produire</span>
+        </div>
+        <div class="card-body">
+          <ul class="checklist" data-panel="3">
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Liste des variations &gt; 10% du CA avec explications possibles</div></div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Liste des variations &gt; 5% du CA si non évidentes</div></div>
+            </li>
+            <li onclick="toggleCheck(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div><div class="check-text">Commentaire structuré adapté au type demandé</div></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="prompt-wrap">
+      <div class="prompt-header">
+        <span class="prompt-label">Prompt type — à coller dans Claude</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'prompt-4')">
+          <span>⎘</span> Copier
+        </button>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-text" id="prompt-4">Voici le bilan et le compte de résultat pour le dossier <span class="prompt-field">[NUMÉRO DOSSIER]</span>, période <span class="prompt-field">[N]</span> vs période <span class="prompt-field">[N-1]</span>.
+
+Secteur : <span class="prompt-field">[services / commerce / immobilier]</span>
+Type de commentaire : <span class="prompt-field">[situation intermédiaire / clôture annuelle]</span>
+
+1. Identifie toutes les variations supérieures à 10% du CA (à commenter obligatoirement)
+2. Identifie les variations supérieures à 5% du CA si l'explication n'est pas évidente
+3. Pour chaque variation, indique les explications possibles
+
+Rédige ensuite un commentaire structuré adapté au type demandé.</div>
+      </div>
+    </div>
+
+    <div class="attention-box">
+      <div class="attention-title">⚠ Règle absolue — commentaire client</div>
+      <ul>
+        <li>Le commentaire produit par Claude est un brouillon — jamais un envoi direct</li>
+        <li>Claude ne connaît pas le contexte du dossier : investissement, perte de contrat, saisonnalité</li>
+        <li>Valider chaque point avec la réalité du dossier avant toute transmission au client</li>
+      </ul>
+    </div>
+
+    <div class="section-card">
+      <div class="card-header decision">
+        <span class="card-icon">✅</span>
+        <span class="card-label decision">Validation finale — Katja</span>
+      </div>
+      <div class="card-body">
+        <ul class="checklist" data-panel="3">
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div><div class="check-text">Valider les variations identifiées avec la réalité du dossier</div></div>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div><div class="check-text">Adapter le commentaire au contexte spécifique du client</div></div>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div><div class="check-text">Envoyer uniquement après validation complète</div></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- /panel-3 -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       PANEL 5 — SUIVI PHASE TEST
+  ══════════════════════════════════════════════════════════ -->
+  <div class="workflow-panel" id="panel-4">
+
+    <div class="wf-header">
+      <div class="wf-number">◎</div>
+      <div class="wf-meta">
+        <div class="wf-eyebrow">Phase test — 4 semaines</div>
+        <div class="wf-title">Suivi de performance</div>
+        <div class="wf-desc">Enregistre le temps passé par dossier, avant et après Claude. Objectif : quantifier le gain réel sur 4 semaines pour décider de la suite. 5 minutes par dossier traité.</div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-label">Dossiers enregistrés</div>
+        <div class="stat-value" id="stat-count">0</div>
+        <div class="stat-sub">entrées au total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Gain moyen / dossier</div>
+        <div class="stat-value" id="stat-gain">—</div>
+        <div class="stat-sub">minutes économisées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Anomalies détectées</div>
+        <div class="stat-value" id="stat-anomalies">0</div>
+        <div class="stat-sub">par Claude au total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ROI abonnement</div>
+        <div class="stat-value" id="stat-roi">—</div>
+        <div class="stat-sub">min économisées / $20</div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="track-form">
+      <h3>Nouvelle entrée</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-input" id="tr-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Workflow</label>
+          <select class="form-select" id="tr-workflow">
+            <option value="">— Sélectionner —</option>
+            <option value="1">WF1 — Réconciliation bancaire</option>
+            <option value="2">WF2 — Contrôle TVA</option>
+            <option value="3">WF3 — Clôture mensuelle</option>
+            <option value="4">WF4 — Bilan / P&L</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Temps sans Claude (min)</label>
+          <div class="time-inputs">
+            <input type="number" class="form-input" id="tr-before" placeholder="ex. 45" min="0">
+            <span>min</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Temps avec Claude (min)</label>
+          <div class="time-inputs">
+            <input type="number" class="form-input" id="tr-after" placeholder="ex. 20" min="0">
+            <span>min</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anomalies détectées par Claude</label>
+          <input type="number" class="form-input" id="tr-anomalies" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anomalies manquées par Claude</label>
+          <input type="number" class="form-input" id="tr-missed" placeholder="0" min="0">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Commentaire (optionnel)</label>
+          <textarea class="form-textarea" id="tr-comment" placeholder="Observations, difficultés, suggestions..."></textarea>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="addEntry()">Enregistrer l'entrée</button>
+    </div>
+
+    <!-- LOG -->
+    <div class="log-section">
+      <div class="log-header">
+        <div class="log-title">Journal des entrées</div>
+        <div class="log-actions">
+          <button class="btn-secondary btn-export" onclick="exportCSV()">Exporter CSV</button>
+          <button class="btn-secondary" onclick="clearLog()" style="color:#ccc;">Tout effacer</button>
+        </div>
+      </div>
+      <div class="log-table-wrap">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Workflow</th>
+              <th>Sans Claude</th>
+              <th>Avec Claude</th>
+              <th>Gain</th>
+              <th>Anomalies</th>
+              <th>Manquées</th>
+              <th>Commentaire</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="log-body">
+            <tr><td colspan="9" class="log-empty">Aucune entrée — commence par remplir le formulaire ci-dessus.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /panel-4 -->
+
+</div><!-- /main -->
+
+<div class="footer">
+  PHI Fiduciaire Sàrl &nbsp;<span>·</span>&nbsp; Rue de Malatrex 38, CH-1201 Genève &nbsp;<span>·</span>&nbsp; Usage interne confidentiel
+</div>
+
+<script>
+  // ── TAB SWITCHING ─────────────────────────────────────────
+  function switchTab(idx) {
+    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+    document.querySelectorAll('.workflow-panel').forEach((p,i) => p.classList.toggle('active', i===idx));
+  }
+
+  // ── CHECKLIST TOGGLE ──────────────────────────────────────
+  function toggleCheck(li) {
+    li.classList.toggle('checked');
+    updateProgress(li.closest('[data-panel]').dataset.panel);
+  }
+
+  function updateProgress(panelId) {
+    const lists = document.querySelectorAll(`[data-panel="${panelId}"] li`);
+    const total = lists.length;
+    const done = document.querySelectorAll(`[data-panel="${panelId}"] li.checked`).length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    document.getElementById(`prog-${panelId}`).style.width = pct + '%';
+    document.getElementById(`pct-${panelId}`).textContent = pct + '%';
+  }
+
+  // ── RESET ─────────────────────────────────────────────────
+  function resetPanel(idx) {
+    document.querySelectorAll(`[data-panel="${idx}"] li`).forEach(li => li.classList.remove('checked'));
+    updateProgress(idx);
+  }
+
+  // ── COPY PROMPT ───────────────────────────────────────────
+  function copyPrompt(btn, promptId) {
+    const el = document.getElementById(promptId);
+    const text = el.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ Copié';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = '<span>⎘</span> Copier';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  // ── TRACKING ──────────────────────────────────────────────
+  const WF_LABELS = { '1':'WF1 — Réconciliation', '2':'WF2 — TVA', '3':'WF3 — Clôture', '4':'WF4 — Bilan/P&L' };
+  const WF_BADGES = { '1':'badge-1', '2':'badge-2', '3':'badge-3', '4':'badge-4' };
+
+  let entries = [];
+
+  function addEntry() {
+    const date     = document.getElementById('tr-date').value;
+    const wf       = document.getElementById('tr-workflow').value;
+    const before   = parseInt(document.getElementById('tr-before').value) || 0;
+    const after    = parseInt(document.getElementById('tr-after').value) || 0;
+    const anom     = parseInt(document.getElementById('tr-anomalies').value) || 0;
+    const missed   = parseInt(document.getElementById('tr-missed').value) || 0;
+    const comment  = document.getElementById('tr-comment').value.trim();
+
+    if (!date || !wf || before === 0) {
+      alert('Merci de remplir au minimum : date, workflow et temps sans Claude.');
+      return;
+    }
+
+    const entry = { id: Date.now(), date, wf, before, after, anom, missed, comment };
+    entries.unshift(entry);
+    save();
+    resetForm();
+    renderLog();
+    updateStats();
+  }
+
+  function resetForm() {
+    ['tr-date','tr-workflow','tr-before','tr-after','tr-anomalies','tr-missed','tr-comment']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('tr-date').value = new Date().toISOString().split('T')[0];
+  }
+
+  function deleteEntry(id) {
+    entries = entries.filter(e => e.id !== id);
+    save();
+    renderLog();
+    updateStats();
+  }
+
+  function clearLog() {
+    if (confirm('Effacer toutes les entrées ?')) {
+      entries = [];
+      save();
+      renderLog();
+      updateStats();
+    }
+  }
+
+  function save() {
+    try { localStorage.setItem('phi_track', JSON.stringify(entries)); } catch(e) {}
+  }
+
+  function renderLog() {
+    const tbody = document.getElementById('log-body');
+    if (entries.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" class="log-empty">Aucune entrée — commence par remplir le formulaire ci-dessus.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = entries.map(e => {
+      const gain = e.before - e.after;
+      const gainHtml = gain > 0
+        ? `<span class="gain-pos">−${gain} min</span>`
+        : gain < 0
+        ? `<span class="gain-neg">+${Math.abs(gain)} min</span>`
+        : '<span style="color:#bbb">—</span>';
+      return `<tr>
+        <td style="white-space:nowrap">${e.date}</td>
+        <td><span class="badge-wf ${WF_BADGES[e.wf]}">${WF_LABELS[e.wf]}</span></td>
+        <td>${e.before} min</td>
+        <td>${e.after > 0 ? e.after + ' min' : '—'}</td>
+        <td>${gainHtml}</td>
+        <td style="text-align:center">${e.anom > 0 ? e.anom : '—'}</td>
+        <td style="text-align:center">${e.missed > 0 ? '<span style="color:var(--red)">'+e.missed+'</span>' : '—'}</td>
+        <td style="color:#888;font-style:italic;max-width:200px;">${e.comment || '—'}</td>
+        <td><button class="delete-row" onclick="deleteEntry(${e.id})" title="Supprimer">✕</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function updateStats() {
+    const n = entries.length;
+    document.getElementById('stat-count').textContent = n;
+
+    const withBoth = entries.filter(e => e.before > 0 && e.after > 0);
+    if (withBoth.length > 0) {
+      const avgGain = Math.round(withBoth.reduce((s,e) => s + (e.before - e.after), 0) / withBoth.length);
+      document.getElementById('stat-gain').textContent = (avgGain >= 0 ? '−' : '+') + Math.abs(avgGain);
+    } else {
+      document.getElementById('stat-gain').textContent = '—';
+    }
+
+    const totalAnom = entries.reduce((s,e) => s + e.anom, 0);
+    document.getElementById('stat-anomalies').textContent = totalAnom;
+
+    // ROI = total minutes saved vs $20 subscription
+    const totalGain = withBoth.reduce((s,e) => s + (e.before - e.after), 0);
+    if (totalGain > 0) {
+      document.getElementById('stat-roi').textContent = totalGain;
+      document.getElementById('stat-roi').nextElementSibling.textContent = `min économisées pour $20/mois`;
+    } else {
+      document.getElementById('stat-roi').textContent = '—';
+    }
+  }
+
+  function exportCSV() {
+    if (entries.length === 0) { alert('Aucune donnée à exporter.'); return; }
+    const header = 'Date,Workflow,Sans Claude (min),Avec Claude (min),Gain (min),Anomalies Claude,Anomalies manquées,Commentaire';
+    const rows = entries.map(e =>
+      `${e.date},"${WF_LABELS[e.wf]}",${e.before},${e.after},${e.before - e.after},${e.anom},${e.missed},"${e.comment.replace(/"/g,'""')}"`
+    );
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `phi_suivi_claude_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ── INIT ──────────────────────────────────────────────────
+  try { entries = JSON.parse(localStorage.getItem('phi_track') || '[]'); } catch(e) { entries = []; }
+  [0,1,2,3].forEach(updateProgress);
+  document.getElementById('tr-date').value = new Date().toISOString().split('T')[0];
+  renderLog();
+  updateStats();
+</script>
+
+</body>
+</html>
